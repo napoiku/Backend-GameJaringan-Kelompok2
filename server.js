@@ -22,10 +22,6 @@ app.post('/api/register', (req, res) => {
 app.post('/api/login', (req, res) => {
     res.status(501).json({ message: 'Endpoint /api/login belum diimplementasikan' });
 });
-app.get('/api/leaderboard', (req, res) => {
-    res.status(501).json({ message: 'Endpoint /api/leaderboard belum diimplementasikan'
-    });
-});
 
 // --- ENDPOINT 1: SIMPAN SKOR PERTANDINGAN --- 
 app.post('/api/score/save', (req, res) => { 
@@ -73,6 +69,30 @@ app.get('/api/score/highscore/:userId', (req, res) => {
         }); 
     }); 
 });	
+
+// --- ENDPOINT GET LEADERBOARD (TOP 10 HIGH SCORES) ---
+app.get('/api/leaderboard', (req, res) => {
+    const sql = `
+    SELECT u.username, MAX(s.score) AS highScore
+    FROM scores s
+    JOIN users u ON s.user_id = u.id
+    GROUP BY s.user_id
+    ORDER BY highScore DESC
+    LIMIT 10
+    `;
+
+    db.all(sql, [], (err, rows) => {
+        if (err) {
+            console.error('Gagal mengambil leaderboard:', err.message);
+            return res.status(500).json({ status: 'error', message: 'Gagal mengambil data leaderboard.' });
+        }
+
+        res.status(200).json({
+            status: 'success',
+            data: rows
+        });
+    });
+});
 // Jalankan Server
 app.listen(PORT, () => {
  console.log(`=================================`);
